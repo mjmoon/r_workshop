@@ -1,0 +1,549 @@
+---
+title: "Data Manipulation and Analysis with R"
+author: Michael J. Moon
+date: September 8, 2019
+output:
+  ioslides_presentation:
+    css: style.css
+---
+
+# R Basics
+
+```{r include=FALSE}
+library(knitr)
+library(kableExtra)
+library(RColorBrewer)
+library(scales)
+palette(brewer.pal(8, 'Accent'))
+```
+
+## What is R?
+
+From `https://www.r-project.org/about.html`...  
+    
+<div class="quotation">
+R is a language and environment for statistical computing and graphics...R provides a wide variety of statistical (...) and graphical techniques, and is highly extensible...R provides an <b>Open Source</b> route...R is available as <b>Free</b> Software under the terms of the Free Software Foundation’s GNU General Public License in source code form...
+</div>
+
+
+## What is R?
+
+From `https://www.r-project.org/about.html`...  
+    
+<div class="quotation">
+R is a language and environment for statistical computing and graphics...R provides a wide variety of statistical (...) and graphical techniques, and is highly extensible...R provides an <b>Open Source</b> route...R is available as <b>Free</b> Software under the terms of the Free Software Foundation’s GNU General Public License in source code form...
+</div>
+
+### Open Source and free
+
++ No money? No problem.
++ You can also contribute to the community.
+
+## What is R?
+
+From `https://www.r-project.org/about.html`...  
+    
+<div class="quotation">
+R is a **language** and **environment** for statistical computing and graphics...R provides a wide variety of statistical (...) and graphical techniques, and is highly extensible...
+</div>
+
+### A language
+
++ Allows you to **instruct** computers to perform statistical tasks. 
++ Needs to learn the language.
+
+### An environment
+
++ You need the `R` environment so your computer can understand the `R` instructions.
++ `R` installation comes with a basic source code editor.
+
+## RStudio
+
+### RStudio
+
++ A popular IDE dedicated to `R`.
++ Provides an integrated GUI for source code editing, plotting, and debugging among other features.
++ This document was created in `RStudio`.
+
+### Installation
+
++ Download `R` from [https://www.r-project.org/](https://www.r-project.org/).
++ Download `RStudio` from [https://www.rstudio.com/products/rstudio/download/](https://www.rstudio.com/products/rstudio/download/)  
+    (Use *RStudio Desktop* free version).
++ Install `R` before installing `RStudio`.
+
+## Data types
+### Basic types
+
+<div class="columns-2">
++ Numeric (real numbers)
+```{r eval=FALSE}
+1/7 
+```
++ Integer
+```{r eval=FALSE}
+30 
+```
++ Complex
+```{r eval=FALSE}
+3+2i 
+```
++ Logical
+```{r eval=FALSE}
+30==30 
+# TRUE <- this is a comment
+```
++ Character (not a number)
+```{r eval=FALSE}
+as.character(3.14) 
+# "3.14" not a number
+```
+</br>
+</div>
+
+## Data types
+
+### Not allowed
+
+```{r eval=FALSE}
+as.character(3.14) + 1
+```
+
+`Error in as.character(3.14) + 1 : non-numeric argument to binary operator`
+
+### Allowed
+```{r}
+TRUE + 3 # TRUE evaluates to 1; FALSE to 0
+```
+
+## Data types
+
+<div class="columns-2">
+### Vector
++ A sequence of elements of the **same** basic data type.
+```{r}
+c(1,FALSE,0.5)
+c(1,FALSE,'a')[2]
+```
+</br>
+</br>
+
+### Matrix
++ Two dimensional collection of elements of the **same** basic data type.
+```{r}
+matrix(
+  c(1:9),
+  nrow=3, ncol=3,
+  byrow=TRUE
+)
+```
+</div>
+
+## Data types
+### List
++ A generic vector containing other objects.
+
+```{r}
+list.w.vector <- list(
+  1.5,TRUE,'a',a=c(1:5))
+list.w.vector[[3]]
+list.w.vector$a[1]
+```
+
+## Data types
+### Data frame
++ A list of vectors of equal length used to store data tables.
+```{r}
+df <- data.frame(
+  ALPHABET=letters[1:4],
+  INTEGER=c(1:4),
+  SQRT=sqrt(c(1:4)),
+  GUESSME=c(TRUE,1.2,'0',NA)
+)
+```
+
+
+## Data types 
+### Data frame
++ A list of vectors of equal length used to store data tables.
+```{r eval=FALSE}
+df <- data.frame(
+  ALPHABET=letters[1:4],
+  INTEGER=c(1:4),
+  SQRT=sqrt(c(1:4)),
+  GUESSME=c(TRUE,1.2,'0',NA)
+)
+```
+```{r echo=FALSE}
+df %>%
+  kable(align = 'lcccr', digits=3) %>%
+  kable_styling(
+    full_width = TRUE
+  )
+```
+
+## Getting help
+
++ Type `?` followed by a function name.
+```{r}
+?help
+```
++ Or use the search box in `RStudio` under `Help` tab.
++ Or ask the Internet.
+
+<div class="shout-out">
+Get used to reading the documentation.
+</div>
+
+## Other topics
++ Scalar vs. vectorised functions, i.e., functions that work on a single value vs. al values in a vector.
++ Family of `apply` functions.
++ User-defined functions.
+```{r}
+sum(1:4)
+sapply(df$INTEGER, function(x) { if(x>2) x else -1 })
+```
+
+# Data Inspection and Manipulation
+
+## Import data
+
+### `read.csv`
++ Creates a data frame from a csv file.
+```{r eval=FALSE}
+df <- read.csv('./path/to/file.csv', sep=",", header=TRUE, ...)
+```
+
+### `readLines`
++ Reads text lines from a connection.
++ Doesn't have to be a csv.
++ Useful when you don't want to read only a part of a large text file to prevent memory outage.
+```{r eval=FALSE}
+readLines('./path/to/file.txt', n=-1L) # read all lines
+readLines('./path/to/file.txt', n=5) # read first 5 lines
+```
+
+## Import data
+### Example
++ Data retreived from [BuzzFeed Github Repository (https://github.com/BuzzFeedNews/2015-12-mass-shooting-intervals)](https://github.com/BuzzFeedNews/2015-12-mass-shooting-intervals).
+```{r}
+df <- read.csv('data/shooting-usa.csv')
+```
+```{r echo=FALSE}
+head(df) %>%
+  kable(align = 'rccl') %>%
+  kable_styling(
+    full_width = TRUE
+  )
+```
+
+## Basic inspection
+### `head` and `tail`
++ Displays first or last parts of data.
+```{r}
+head(df)
+```
+
+## Basic inspection
+### `dim`
++ Returns the number of rows x the number of columns.
++ Use `length` for vectors and lists.
+```{r}
+dim(df)
+```
+
+## Basic inspection
+### `str`
++ Displays the internal structure of the object.
+```{r}
+str(df)
+```
+
+## Basic inspection
+### `summary`
++ Displays basic summaries for each column.
+```{r}
+summary(df)
+```
+
+## Basic manipulation
+### Data class conversion
++ `Date` is coded as a `Factor`.
++ `Factor` variables are categorical.
++ We want `Date` to represent...dates.
+```{r eval=FALSE}
+as.Date(vector, 'Format')
+```
+
+## Basic manipulation
+### Data class conversion
+```{r}
+df$Location <- as.character(df$Location)
+df$Date <- as.Date(df$Date, '%m/%d/%Y')
+str(df)
+```
+
+## Basic manipulation
+### Data class conversion
++ Allows methods specific to `Date` class.
+```{r}
+df$Year <- as.numeric(format(df$Date,'%Y'))
+df$Month <- months(df$Date)
+df$Week.Day <- weekdays(df$Date)
+df$Date.Ind <- julian(df$Date, as.Date('2013-01-01'))
+head(df[c('Date', 'Year', 'Month', 'Week.Day', 'Date.Ind')])
+```
+
+## Basic manipulation
+### Data class conversion
++ `Month` and `Week.Day` can be coded as `Factor`s. 
+```{r}
+df$Month <- factor(
+  df$Month, 
+  c('January', 'February', 'March', 'April', 'May', 'June',
+    'July', 'August', 'September', 'October', 'November', 'December'))
+df$Week.Day <- factor(
+  df$Week.Day, c('Sunday', 'Monday', 'Tuesday', 
+                 'Wednesday', 'Thursday', 'Friday', 'Saturday'))
+```
+
+## Basic manipulation
+### Text manipulation
++ Part of text can be extracted by pattern.
+```{r}
+head(df$Location)
+```
+
+## Basic manipulation
+### Text manipulation
++ Part of text can be extracted by pattern.
+```{r}
+df$State <- sub('.*, ?', '', df$Location)
+unique(df$State)
+```
+
+## Basic manipulation
+### Text manipulation
++ And more...
+```{r}
+df$State <- toupper(df$State)
+df$State[grep('D.?C.?', df$State)] <- 'DC'
+df$State[grep('ILLINOIS', df$State)] <- 'IL'
+df$State[grep('KANSAS', df$State)] <- 'KS'
+df$State[grep('LOUISIANA', df$State)] <- 'LA'
+df$State[grep('PUERTO', df$State)] <- 'PR'
+df$State[grep('TENNESSEE', df$State)] <- 'TN'
+sort(unique(df$State))
+```
+
+## Basic manipulation
+### `rbind` and `cbind`
++ Combine R Objects (e.g., data frames) by rows or columns.
+```{r eval=FALSE}
+# Example
+df.2013 <- read.csv('path/to/file2013.csv')
+df.2014 <- read.csv('path/to/file2014.csv')
+df.2015 <- read.csv('path/to/file2015.csv')
+# combine
+df.all <- rbind(
+  df.2013, df.2014, df.2015
+)
+```
+
+# Basic Plotting
+## Histogram
+```{r eval=FALSE}
+hist(value.vector, ...)
+```
+
+## Scatter plot 
+```{r eval=FALSE}
+plot(x.vector, y.vector, col=color, ...)
+points(x.vector, y.vector, col=color, ...)
+```
+```{r echo=FALSE}
+par(bg=NA) # transparent background for presentation.
+plot(df$Injured, df$Dead, 
+     col=alpha(brewer.pal(8, 'Accent')[2], 0.5),
+     pch=16, axes=FALSE, xlim=c(0,20), ylim=c(0,15),
+     xlab='Injuries', ylab='Fatalities')
+axis(1, c(0, 10, 20))
+axis(2, c(0, 5, 10, 15))
+mtext('Number of fatalities and injuries per shooting incident in the U.S. between 2013 and 2015.', adj=0)
+```
+
+## Line chart
+```{r eval=FALSE}
+plot(x.vector, y.vector, type='l', col=color, ...)
+lines(x.vector, y.vector, col=color, ...)
+```
+```{r echo=FALSE}
+# sum by month
+df$Year.Month <- format(df$Date,'%Y-%m')
+incident.by.ym <- table(df$Year.Month)
+injury.by.ym <- tapply(df$Injured, df$Year.Month, sum)
+dead.by.ym <- tapply(df$Dead, df$Year.Month, sum)
+# plot
+par(bg=NA)
+plot(injury.by.ym, col=2, type='l', ylim=c(0,200), axes=FALSE)
+lines(c(incident.by.ym), col=8)
+lines(dead.by.ym, col=6)
+axis(1, c(-5, 1, 13, 25, 37, 50), c('','2013', '2014', '2015', '2016', ''))
+axis(2, c(0, 100, 200))
+legend(
+  0, 200, c('Incident count', 'Injury count', 'Fatality count'),
+  bty='n', col=c(8, 2, 6), lty=1, cex=0.7)
+mtext('Fatalities and injuries from shooting incidents in the U.S per month over time.',
+      adj=0)
+```
+
+## Bar plot
+```{r eval=FALSE}
+barplot(height.vector, ...)
+```
+```{r echo=FALSE}
+par(bg=NA)
+xc <- barplot(table(df$Month), border=NA, 
+              names.arg=substr(levels(df$Month),0,3),
+              cex.names=0.7, ylim=c(0,200), axes=FALSE)
+lines(xc, tapply(df$Injured, df$Month, sum)/c(rep(3,11),2), col=2)
+points(xc, tapply(df$Injured, df$Month, sum)/c(rep(3,11),2), pch=16, col=2)
+lines(xc, tapply(df$Dead, df$Month, sum)/c(rep(3,11),2), col=6)
+points(xc, tapply(df$Dead, df$Month, sum)/c(rep(3,11),2), pch=16, col=6)
+axis(2, c(0, 100, 200), las=2)
+mtext('Fatalities and injuries from shooting incidents in the U.S per month.',
+      adj=0)
+```
+
+# Model Fitting
+## Linear regression
+```{r eval=FALSE}
+fitted <- lm(formula=y~x1+x2, data=df, ...)
+summary(fitted)
+```
+
+## Example
+### Generalized additive model
+$$ \rm{Casualties}_i \sim \mathcal{N}(\mu_i, \sigma^2) \\
+\mu_i = \beta_0+\rm{Month}_i\beta + f(\rm{Week}_i,\nu) $$
+
+## Example
+```{r message=FALSE}
+library(mgcv)
+df$Casualty <- df$Injured + df$Dead
+df$Week.Ind <- floor(
+  julian(df$Date, as.Date('2013-01-01'))/7
+)
+df.week <- aggregate(df$Casualty, list(Week=df$Week.Ind), sum)
+names(df.week) <- c('Week', 'Count')
+df.week$Date <- as.Date(as.POSIXct(
+  df.week$Week*7*24*60*60, origin = "2013-01-01", tz="UTC"))
+df.week$Month <- factor(
+  months(df.week$Date), 
+  c('January', 'February', 'March', 'April', 'May', 'June',
+    'July', 'August', 'September', 'October', 'November', 'December'))
+fitted <- gam(Count ~ s(Week) + Month, data=df.week)
+```
+
+## Example
+```{r echo=FALSE}
+par(bg=NA)
+week.seq <- data.frame(
+  Date=seq(min(df$Date), as.Date('2017-01-01'), by='week'))
+week.seq$Week <- floor(julian(week.seq$Date, as.Date('2013-01-01'))/7)
+week.seq$Month <- factor(
+  months(week.seq$Date), 
+  c('January', 'February', 'March', 'April', 'May', 'June',
+    'July', 'August', 'September', 'October', 'November', 'December'))
+week.pred <- predict.gam(fitted, week.seq, se.fit=TRUE)
+week.seq$fit <- week.pred$fit
+week.seq$lwr <- week.pred$fit - qnorm(0.975)*week.pred$se.fit
+week.seq$upr <- week.pred$fit + qnorm(0.975)*week.pred$se.fit
+# plot time trend
+plot(week.seq$Week, week.seq$fit, col=1, type='l',
+     xlab='', ylab='Weekly shooting casualty counts', 
+     axes=FALSE, ylim=c(0,100))
+# shade 95% CI
+polygon(c(rev(week.seq$Week), week.seq$Week),
+        c(rev(week.seq$lwr), week.seq$upr),
+        border=NA, col=alpha(8, 0.2))
+points(df.week$Week, df.week$Count, pch=16, col=alpha(7, 0.5))
+axis(1, julian(
+  as.Date(c(
+    '2013-01-01', '2014-01-01', '2015-01-01', '2016-01-01',
+    '2017-01-01')), 
+  as.Date('2013-01-01'))/7, 
+  labels=c('2013', '2014', '2015', '2016', '2017'))
+axis(2, c(0, 50, 100), las=2)
+mtext('Estimated weekly casualty counts from shooting incidents in the U.S.', 
+      adj=0)
+```
+
+## Example
+```{r echo=FALSE}
+par(bg=NA)
+month.seq <- data.frame(
+  Date = seq(as.Date('2013-01-01'), by='months', length.out=12))
+month.seq$Week <- floor(julian(
+  month.seq$Date, as.Date('2013-01-01'))/7)
+month.seq$Month <- factor(
+  months(month.seq$Date), 
+  c('January', 'February', 'March', 'April', 'May', 'June',
+    'July', 'August', 'September', 'October', 'November', 'December'))
+month.pred <- predict.gam(fitted, month.seq, se.fit=TRUE, type='terms', terms='Month')
+month.seq$fit <- month.pred$fit
+month.seq$lwr <- month.pred$fit - qnorm(0.975)*month.pred$se.fit
+month.seq$upr <- month.pred$fit + qnorm(0.975)*month.pred$se.fit
+# plot seasonality
+plot(month.seq$Week, month.seq$fit, col=1, pch=16,
+     xlab='', ylab='Change in weekly casualty counts',
+     ylim=c(-10, 50), axes=FALSE)
+lines(month.seq$Week, month.seq$fit, col=1)
+# shade 95% CI
+polygon(c(rev(month.seq$Week), month.seq$Week),
+        c(rev(month.seq$lwr), month.seq$upr),
+        border=NA, col=alpha(8, 0.2))
+axis(1, month.seq$Week, labels=substr(month.seq$Month,0,3), cex.axis=0.7)
+axis(2, c(-10, 0, 25, 50))
+mtext('Estimated monthly change in weekly casualty counts\nfrom shooting incidents in the U.S.', adj=0)
+```
+
+## Example
+```{r echo=FALSE}
+par(bg=NA)
+week.seq <- data.frame(
+  Date=seq(min(df$Date), max(df$Date), by='week'))
+week.seq$Week <- julian(week.seq$Date, as.Date('2013-01-01'))/7
+week.seq$Month <- factor(
+  months(week.seq$Date), 
+  c('January', 'February', 'March', 'April', 'May', 'June',
+    'July', 'August', 'September', 'October', 'November', 'December'))
+week.pred <- predict.gam(fitted, week.seq, se.fit=TRUE,
+                       type='terms', terms='s(Week)')
+week.seq$fit <- week.pred$fit + min(week.pred$fit)
+week.seq$lwr <- week.pred$fit + min(week.pred$fit) - qnorm(0.975)*week.pred$se.fit
+week.seq$upr <- week.pred$fit + min(week.pred$fit) + qnorm(0.975)*week.pred$se.fit
+# plot time trend
+plot(week.seq$Week, week.seq$fit, col=1, type='l',
+     xlab='', ylab='Change in shooting incident counts',
+     axes=FALSE, ylim=c(-7, 7))
+# shade 95% CI
+polygon(c(rev(week.seq$Week), week.seq$Week),
+        c(rev(week.seq$lwr), week.seq$upr),
+        border=NA, col=alpha(8, 0.2))
+axis(1, floor(julian(
+  as.Date(c('2013-01-01', '2014-01-01', '2015-01-01', '2016-01-01')), 
+  as.Date('2013-01-01'))/7), 
+  labels=c('2013', '2014', '2015', '2016'))
+axis(2, c(-7, 0, 7), las=2)
+mtext('Estimated trend in weekly casualty counts\nfrom shooting incidents in the U.S.', 
+      adj=0)
+```
+
+# Resources
+## Resources
++ [Codes for the workshop](https://github.com/mjmoon/r_workshop)
++ [Search engien for `R` related stuff](https://rseek.org/)
++ [`R` homepage](https://www.r-project.org/)
++ [http://www.r-tutor.com/r-introduction](http://www.r-tutor.com/r-introduction)
++ [Tutorial on R apply family](https://www.datacamp.com/community/tutorials/r-tutorial-apply-family)
