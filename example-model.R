@@ -2,7 +2,7 @@
 # https://github.com/BuzzFeedNews/2015-12-mass-shooting-intervals
 
 # read and match names
-data.dir <- paste0(getwd(), '/Projects/r_workshop/data')
+data.dir <- paste0(getwd(), '/Projects/r_workshop/data') # change to your path
 df <- read.csv(paste0(data.dir, '/shooting-usa.csv'))
 # class conversion
 df$Location <- as.character(df$Location)
@@ -33,6 +33,49 @@ df$State[grep('LOUISIANA', df$State)] <- 'LA'
 df$State[grep('PUERTO', df$State)] <- 'PR'
 df$State[grep('TENNESSEE', df$State)] <- 'TN'
 sort(unique(df$State))
+# ---------------- plotting ---------------- #
+# color scheme setting
+library(RColorBrewer)
+library(scales)
+palette(brewer.pal(8, 'Accent'))
+# scatter plot
+plot(df$Injured, df$Dead, 
+     col=alpha(brewer.pal(8, 'Accent')[2], 0.5),
+     pch=16, axes=FALSE, xlim=c(0,20), ylim=c(0,15),
+     xlab='Injuries', ylab='Fatalities')
+axis(1, c(0, 10, 20))
+axis(2, c(0, 5, 10, 15))
+mtext('Number of fatalities and injuries per shooting incident\nin the U.S. between 2013 and 2015.', adj=0)
+# line chart
+# sum by month
+df$Year.Month <- format(df$Date,'%Y-%m')
+incident.by.ym <- table(df$Year.Month)
+injury.by.ym <- tapply(df$Injured, df$Year.Month, sum)
+dead.by.ym <- tapply(df$Dead, df$Year.Month, sum)
+# plot
+plot(injury.by.ym, col=2, type='l', ylim=c(0,200), axes=FALSE)
+lines(c(incident.by.ym), col=8)
+lines(dead.by.ym, col=6)
+axis(1, c(-5, 1, 13, 25, 37, 50), c('','2013', '2014', '2015', '2016', ''))
+axis(2, c(0, 100, 200))
+legend(
+  0, 200, c('Incident count', 'Injury count', 'Fatality count'),
+  bty='n', col=c(8, 2, 6), lty=1, cex=0.7)
+mtext('Fatalities and injuries from shooting incidents in the U.S per month over time.',
+      adj=0)
+# barplot
+# create a barplot and save the x-coordinates of the mid-points
+plot.new()
+xc <- barplot(table(df$Month), border=NA, 
+              names.arg=substr(levels(df$Month),0,3),
+              cex.names=0.7, ylim=c(0,200), axes=FALSE)
+lines(xc, tapply(df$Injured, df$Month, sum)/c(rep(3,11),2), col=2)
+points(xc, tapply(df$Injured, df$Month, sum)/c(rep(3,11),2), pch=16, col=2)
+lines(xc, tapply(df$Dead, df$Month, sum)/c(rep(3,11),2), col=6)
+points(xc, tapply(df$Dead, df$Month, sum)/c(rep(3,11),2), pch=16, col=6)
+axis(2, c(0, 100, 200), las=2)
+mtext('Fatalities and injuries from shooting incidents in the U.S per month.',
+      adj=0)
 # ------------- model fitting ------------- #
 # model fitting
 library(mgcv) # required library for gam
